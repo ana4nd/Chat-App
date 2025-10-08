@@ -1,4 +1,4 @@
-import express from "express"
+import express from "express";
 import "dotenv/config";
 import cors from "cors";
 import connectDB from "./lib/db.js";
@@ -9,17 +9,15 @@ import http from "http";
 
 const app = express();
 
-const PORT = process.env.PORT || 3000
-
 // Create HTTP Server
 
-const server =http.createServer(app);
+const server = http.createServer(app);
 
 // initialize socket.io server
 
 export const io = new Server(server, {
-    cors: {origin: "*"},
-})
+  cors: { origin: "*" },
+});
 
 // store online users
 
@@ -54,16 +52,21 @@ app.use(cors());
 
 connectDB();
 
-
 // Route setup
 
-app.use("/", (req, res)=>{
-    res.send("Server is live");
-})
+app.use("/", (req, res) => {
+  res.send("Server is live");
+});
 
 app.use("/api/auth", userRouter);
 app.use("/api/messages", messageRouter);
 
-server.listen(PORT, ()=>{
+if (process.env.NODE_ENV !== "production") {
+  const PORT = process.env.PORT || 3000;
+  server.listen(PORT, () => {
     console.log(`Server is listen on ${PORT}`);
-})
+  });
+}
+
+// exported for vercel
+export default server;
