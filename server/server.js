@@ -54,12 +54,13 @@ connectDB();
 
 // Route setup
 
-app.use("/", (req, res) => {
-  res.send("Server is live");
-});
 
 app.use("/api/auth", userRouter);
 app.use("/api/messages", messageRouter);
+
+app.use("/", (req, res) => {
+  res.send("Server is live");
+});
 
 if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 3000;
