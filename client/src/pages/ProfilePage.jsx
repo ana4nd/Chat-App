@@ -1,15 +1,32 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import assets from "../assets/assets";
+import { useContext } from "react";
+import { AuthContext } from "../../context/AuthContext";
 const ProfilePage = () => {
-  const [selectedImag, setSelectedImg] = useState(null);
+
+  const {authUser, updateProfile} = useContext(AuthContext);
+
+  const [selectedImg, setSelectedImg] = useState(null);
   const navigate = useNavigate();
-  const [name, setName] = useState("Martin Johnson");
-  const [bio, setBio] = useState("Hi Everyone, I am Using QuickChat");
+  const [name, setName] = useState(authUser.fullName);
+  const [bio, setBio] = useState(authUser.bio);
 
   const handleSubmit = async(e)=>{
     e.preventDefault();
-    navigate("/");
+    if(!selectedImg){
+      await updateProfile({fullName: name, bio})
+      navigate("/");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.readAsDataURL(selectedImg);
+    reader.onload = async()=>{
+      const base64Img = reader.result;
+      await updateProfile({fullName: name, bio, profilePic: base64Img});
+      navigate("/");
+    }
   }
 
   return (
@@ -30,12 +47,12 @@ const ProfilePage = () => {
             />
             <img
               src={
-                selectedImag
-                  ? URL.createObjectURL(selectedImag)
+                selectedImg
+                  ? URL.createObjectURL(selectedImg)
                   : assets.avatar_icon
               }
               alt=""
-              className={`w-12 h-12 ${selectedImag && "rounded-full"}`}
+              className={`w-12 h-12 ${selectedImg && "rounded-full"}`}
             />
             Upload Profile Image
           </label>
@@ -63,7 +80,7 @@ const ProfilePage = () => {
             Save
           </button>
         </form>
-        <img src={assets.logo_icon} alt="" className="max-w-44 aspect-square rounded-full mx-10 max-sm:mt-10" />
+        <img src={authUser?.profilePic ||assets.logo_icon} alt="" className={`max-w-44 aspect-square rounded-full mx-10 max-sm:mt-10 ${selectedImg && 'rounded-full'}`} />
       </div>
     </div>
   );

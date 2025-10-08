@@ -5,15 +5,20 @@ import connectDB from "./lib/db.js";
 import userRouter from "./routes/user.routes.js";
 import messageRouter from "./routes/messageRoutes.js";
 import { Server } from "socket.io";
+import http from "http";
 
 const app = express();
 
 const PORT = process.env.PORT || 3000
 
+// Create HTTP Server
+
+const server =http.createServer(app);
+
 // initialize socket.io server
 
 export const io = new Server(server, {
-    cors: {origin: "*"}
+    cors: {origin: "*"},
 })
 
 // store online users
@@ -22,24 +27,24 @@ export const userSocketMap = {}; //{userId: socketId}
 
 // socket.io connection handler
 
-io.on("connection", (socket)=>{
-    const userId = socket.handshake.query.userId;
-    console.log("User connected", userId);
+io.on("connection", (socket) => {
+  let userId = socket.handshake.query.userId;
 
-    if(userId){
-        userSocketMap[userId] = socket.id;
-    }
+  if (!userId) {
+    return;
+  }
 
-    // emit online to all connected clients
+  userId = userId.toString();
+
+  userSocketMap[userId] = socket.id;
+
+  io.emit("getOnlineUsers", Object.keys(userSocketMap));
+
+  socket.on("disconnect", () => {
+    delete userSocketMap[userId];
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
-
-    socket.on("Disconnect", ()=>{
-        console.log("User disconnected", userId);
-        delete userSocketMap[userId];
-        io.emit("getOnlineUsers", Object.keys(userSocketMap))
-    })
-
-})
+  });
+});
 
 // Middleware Setup
 app.use(express.json());
@@ -52,13 +57,13 @@ connectDB();
 
 // Route setup
 
-app.use("/api/status", (req, res)=>{
+app.use("/", (req, res)=>{
     res.send("Server is live");
 })
 
 app.use("/api/auth", userRouter);
 app.use("/api/messages", messageRouter);
 
-app.listen(PORT, ()=>{
+server.listen(PORT, ()=>{
     console.log(`Server is listen on ${PORT}`);
 })

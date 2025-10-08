@@ -1,13 +1,17 @@
 import React, { useState } from "react";
 import assets from "../assets/assets";
+import { useContext } from "react";
+import { AuthContext } from "../../context/AuthContext";
 
 const LoginPage = () => {
-  const [currState, setCurrState] = useState("Sign up");
+  const [currState, setCurrState] = useState("login");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [bio, setBio] = useState("");
   const [isDataSubmitted, setIsDataSubmitted] = useState(false);
+
+  const { login } = useContext(AuthContext);
 
   const onSubmitHandler = (e) => {
     e.preventDefault();
@@ -16,6 +20,13 @@ const LoginPage = () => {
       setIsDataSubmitted(true);
       return;
     }
+
+    login(currState === "Sign up" ? "signup" : "login", {
+      fullName,
+      email,
+      password,
+      bio,
+    });
   };
 
   return (
@@ -91,10 +102,12 @@ const LoginPage = () => {
           {currState === "Sign up" ? "Create Account" : "Login"}
         </button>
 
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <input type="checkbox" />
-          <p>Agree to the terms of use & privacy policy</p>
-        </div>
+        {currState === "Sign up" ? (
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <input type="checkbox" required />
+            <p>Agree to the terms of use & privacy policy</p>
+          </div>
+        ) : null}
 
         <div className="flex flex-col gap-2">
           {currState === "Sign up" ? (
